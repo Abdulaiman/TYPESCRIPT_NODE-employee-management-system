@@ -1,21 +1,38 @@
-import { Schema, model } from "mongoose";
-
-interface Iuser {
-  name: String;
+import { Schema, model, Types } from "mongoose";
+const validator = require("validator");
+const bcrypt = require("bcrypt");
+export interface Iuser {
+  firstName: String;
+  lastName: String;
+  birthday: String;
+  gender: String;
+  address: String;
+  department: Types.ObjectId;
+  city: String;
+  country: String;
+  mobileNumber: Number;
   email: String;
   password: String;
-  passwordConfirm: String;
+  passwordConfirm: String | undefined;
   role: String;
+  correctPassword: (candidatePassword: String, password: String) => any;
 }
 
 const UserSchema = new Schema<Iuser>({
-  name: {
+  firstName: {
     type: String,
     required: true,
   },
-  email: {
+  lastName: {
     type: String,
     required: true,
+    unique: true,
+  },
+  email: {
+    type: String,
+    unique: true,
+    required: true,
+    validate: [validator.isEmail, "please use a valid email address"],
   },
   password: {
     type: String,
@@ -24,9 +41,62 @@ const UserSchema = new Schema<Iuser>({
   passwordConfirm: {
     type: String,
     required: true,
+    validate: {
+      validator: function (el: String): Boolean {
+        return el === this.password;
+      },
+      message: "password and password confirm must be the same",
+    },
+  },
+  birthday: {
+    type: Date,
+    required: true,
+  },
+  gender: {
+    type: String,
+    required: true,
+  },
+  address: {
+    type: String,
+    required: true,
+  },
+  city: {
+    type: String,
+    required: true,
+  },
+  country: {
+    type: String,
+    required: true,
+  },
+  mobileNumber: {
+    type: Number,
+    required: true,
+  },
+  department: {
+    type: Schema.Types.ObjectId,
+    ref: "Department",
+  },
+  role: {
+    type: String,
+    default: "staff",
   },
 });
 
+UserSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return;
+  this.password = await bcrypt.hash(this.password, 12);
+  this.passwordConfirm = undefined;
+  next();
+});
+
+UserSchema.methods.correctPassword = async (
+  candidatePassword: String,
+  password: String
+) => {
+  return await bcrypt.compare(candidatePassword, password);
+};
+
 const User = model<Iuser>("User", UserSchema);
+
 export {};
 export default User;
