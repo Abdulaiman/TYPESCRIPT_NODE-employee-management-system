@@ -71,7 +71,7 @@ export const protect = catchAsync(
         new AppError("json web token is invalid please provide a valid token")
       );
     }
-    console.log(decoded);
+
     const { id } = decoded;
     const user = await User.findById(id);
 

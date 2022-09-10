@@ -15,6 +15,9 @@ export interface Iuser {
   password: String;
   passwordConfirm: String | undefined;
   role: String;
+  isVerified: Boolean;
+  leavesTaken: Number;
+  allowedLeaves?: Number;
   correctPassword: (candidatePassword: String, password: String) => any;
 }
 
@@ -48,9 +51,21 @@ const UserSchema = new Schema<Iuser>({
       message: "password and password confirm must be the same",
     },
   },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
   birthday: {
     type: Date,
     required: true,
+  },
+  allowedLeaves: {
+    type: Number,
+    default: 20,
+  },
+  leavesTaken: {
+    type: Number,
+    default: 0,
   },
   gender: {
     type: String,
@@ -79,6 +94,10 @@ const UserSchema = new Schema<Iuser>({
   role: {
     type: String,
     default: "staff",
+    enum: {
+      values: ["staff", "manager", "admin"],
+      message: "the value is passed is not a valid",
+    },
   },
 });
 

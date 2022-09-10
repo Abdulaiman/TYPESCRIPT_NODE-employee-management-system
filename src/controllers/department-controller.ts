@@ -20,6 +20,7 @@ export const getAllDepartments = catchAsync(
 
     res.status(200).json({
       status: "success",
+      length: departments.length,
       departments,
     });
   }
