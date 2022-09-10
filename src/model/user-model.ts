@@ -102,7 +102,7 @@ const UserSchema = new Schema<Iuser>({
 });
 
 UserSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return;
+  if (!this.isModified("password")) next();
   this.password = await bcrypt.hash(this.password, 12);
   this.passwordConfirm = undefined;
   next();
