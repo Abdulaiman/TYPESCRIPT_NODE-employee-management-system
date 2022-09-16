@@ -39,6 +39,7 @@ const UserSchema = new Schema<Iuser>({
   },
   password: {
     type: String,
+
     required: true,
   },
   passwordConfirm: {
@@ -105,6 +106,10 @@ UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) next();
   this.password = await bcrypt.hash(this.password, 12);
   this.passwordConfirm = undefined;
+  next();
+});
+UserSchema.pre(/^find/, async function (next) {
+  this.populate("department");
   next();
 });
 

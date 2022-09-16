@@ -24,7 +24,7 @@ export const createLeave = catchAsync(
 );
 export const getAllLeaves = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const leaves = await Leave.find().populate("employee");
+    const leaves = await Leave.find().populate("employee").sort({ _id: -1 });
 
     res.status(200).json({
       status: "success",
@@ -77,7 +77,7 @@ export const deleteLeave = catchAsync(
 export const getLeaveStats = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
-    const stats = await Leave.aggregate([
+    const stats1 = await Leave.aggregate([
       {
         $match: { status: { $ne: "hello" } },
       },
@@ -87,14 +87,26 @@ export const getLeaveStats = catchAsync(
           sum: { $sum: 1 },
         },
       },
-    ]);
-    if (!stats) {
-      return next(new AppError("there is no stats found with this is"));
+    ]).sort({ _id: -1 });
+    const stats2 = await Leave.aggregate([
+      {
+        $match: { status: { $ne: "hello" } },
+      },
+      {
+        $group: {
+          _id: "$type",
+          sum: { $sum: 1 },
+        },
+      },
+    ]).sort({ _id: -1 });
+    if (!stats1 || !stats2) {
+      return next(new AppError("there is no stats1 found with this is"));
     }
 
     res.status(200).json({
       status: "success",
-      stats,
+      stats1,
+      stats2,
     });
   }
 );
@@ -104,7 +116,27 @@ export const getWaitingForApprovalLeaves = catchAsync(
       {
         $match: { status: "waiting-for-approval" },
       },
-    ]);
+    ]).sort({ _id: -1 });
+
+    leaves = await User.populate(leaves, { path: "employee" });
+    if (!leaves) {
+      return next(new AppError("there is no leaves found with this is"));
+    }
+
+    res.status(200).json({
+      status: "success",
+      length: leaves.length,
+      leaves,
+    });
+  }
+);
+export const getDeclinedLeaves = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    let leaves = await Leave.aggregate([
+      {
+        $match: { status: "declined" },
+      },
+    ]).sort({ _id: -1 });
 
     leaves = await User.populate(leaves, { path: "employee" });
     if (!leaves) {
@@ -124,7 +156,7 @@ export const getApprovedLeaves = catchAsync(
       {
         $match: { status: "approved" },
       },
-    ]);
+    ]).sort({ _id: -1 });
     leaves = await User.populate(leaves, { path: "employee" });
     if (!leaves) {
       return next(new AppError("there is no leaves found with this is"));
@@ -138,20 +170,41 @@ export const getApprovedLeaves = catchAsync(
 );
 export const getMyLeaves = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.user._id;
-    let leave = await Leave.aggregate([
+    const id = req.user._id;
+    let leaves = await Leave.aggregate([
       {
         $match: { employee: id },
       },
-    ]);
-    leave = await User.populate(leave, { path: "employee" });
-    if (!leave) {
+    ]).sort({ _id: -1 });
+    leaves = await User.populate(leaves, { path: "employee" });
+    if (!leaves) {
       return next(new AppError("there is no leave found with this is"));
     }
 
     res.status(200).json({
       status: "success",
-      leave,
+      leaves,
+    });
+  }
+);
+export const getMyLeavesStats = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.user._id;
+    let stats2 = await Leave.aggregate([
+      {
+        $match: { employee: id },
+      },
+      {
+        $group: {
+          _id: "$status",
+          sum: { $sum: 1 },
+        },
+      },
+    ]).sort({ _id: -1 });
+
+    res.status(200).json({
+      status: "success",
+      stats2,
     });
   }
 );

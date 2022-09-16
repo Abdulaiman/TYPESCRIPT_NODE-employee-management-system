@@ -3,6 +3,7 @@ import { Types, Schema, model } from "mongoose";
 interface Ileave {
   type: String;
   employee: Types.ObjectId;
+  declineMessage: String;
   postDate: Date;
   status: String;
   from: Date;
@@ -16,6 +17,7 @@ const LeaveSchema = new Schema<Ileave>({
       values: ["holiday", "sick-leave", "vacation", "emergency"],
     },
   },
+
   employee: {
     type: Schema.Types.ObjectId,
     ref: "User",
@@ -33,11 +35,12 @@ const LeaveSchema = new Schema<Ileave>({
   status: {
     type: String,
     enum: {
-      values: ["waiting-for-approval", "approved"],
-      message: "a status can only be approved or waiting",
+      values: ["waiting-for-approval", "approved", "declined"],
+      message: "a status can only be approved or waiting or declined",
     },
     default: "waiting-for-approval",
   },
+  declineMessage: String,
 });
 
 const Leave = model<Ileave>("Leave", LeaveSchema);

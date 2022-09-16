@@ -16,7 +16,7 @@ export const createNotice = catchAsync(
 
 export const getAllNotice = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const notices = await Notice.find();
+    const notices = await Notice.find().sort({ _id: -1 });
 
     res.status(200).json({
       status: "success",
@@ -51,10 +51,11 @@ export const updateNotice = catchAsync(
 export const deleteNotice = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
-    await Notice.findByIdAndDelete(id);
+    const notice = await Notice.findByIdAndDelete(id);
 
-    res.status(204).json({
+    res.status(200).json({
       status: "success",
+      notice,
     });
   }
 );

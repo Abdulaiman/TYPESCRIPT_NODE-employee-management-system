@@ -1,12 +1,16 @@
 import Department from "../model/departments-model";
+import User from "../model/user-model";
 import { Request, Response, NextFunction } from "express";
 import catchAsync from "../../utils/catch-async";
 const AppError = require("../../utils/app-error");
 
 export const createDepartment = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { name, manager }: { name: String; manager: String } = req.body;
-    const department = await Department.create({ name, manager });
+    const managerr = await User.findOne({ lastName: req.body.manager });
+
+    req.body.manager = managerr?._id;
+
+    const department = await Department.create(req.body);
 
     res.status(201).json({
       status: "success",
@@ -16,7 +20,10 @@ export const createDepartment = catchAsync(
 );
 export const getAllDepartments = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const departments = await Department.find().populate("manager developers");
+    const departments = await Department.find()
+      .populate("manager developers")
+      .sort({ _id: -1 })
+      .select("-password");
 
     res.status(200).json({
       status: "success",
@@ -43,7 +50,9 @@ export const getDepartment = catchAsync(
 export const updateDepartment = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
+    const managerr = await User.findOne({ lastName: req.body.manager });
 
+    req.body.manager = managerr?._id;
     const department = await Department.findByIdAndUpdate(id, req.body, {
       new: true,
     }).populate("manager developers");

@@ -28,6 +28,7 @@ export const login = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email, password }: { email: String; password: String } = req.body;
     const user = await User.findOne({ email });
+
     const decoded = await user?.correctPassword(password, user.password);
     if (!user || !decoded) {
       return next(
@@ -48,6 +49,7 @@ export const login = catchAsync(
     res.status(201).json({
       status: "success",
       token,
+      user,
     });
   }
 );

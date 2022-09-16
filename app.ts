@@ -7,8 +7,10 @@ const DepartmentsRouter = require("./src/routes/department-route");
 const NoticeRoute = require("./src/routes/notice-route");
 const LeaveRoute = require("./src/routes/leave-route");
 const ComplaintsRoute = require("./src/routes/complaints-route");
+const cors = require("cors");
 
 app.use(express.json());
+app.use(cors());
 
 app.use("/api/v1/users", UserRouter);
 app.use("/api/v1/departments", DepartmentsRouter);

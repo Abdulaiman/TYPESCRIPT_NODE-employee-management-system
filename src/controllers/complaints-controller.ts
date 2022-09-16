@@ -5,15 +5,13 @@ const AppError = require("../../utils/app-error");
 
 export const createComplaints = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    console.log("just enter");
     if (!(req.body.anonymous === "true")) {
       req.body.employee = req.user._id;
     } else {
       req.body.employee = undefined;
     }
-    console.log("just enter2");
+
     const complaint = await Complaint.create(req.body);
-    console.log("just enter3");
 
     res.status(201).json({
       status: "success",
@@ -23,7 +21,9 @@ export const createComplaints = catchAsync(
 );
 export const getAllComplaints = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const complaints = await Complaint.find().populate("employee");
+    const complaints = await Complaint.find()
+      .sort({ _id: -1 })
+      .populate("employee");
 
     res.status(201).json({
       status: "success",
