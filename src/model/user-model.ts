@@ -45,12 +45,6 @@ const UserSchema = new Schema<Iuser>({
   passwordConfirm: {
     type: String,
     required: true,
-    validate: {
-      validator: function (el: String): Boolean {
-        return el === this.password;
-      },
-      message: "password and password confirm must be the same",
-    },
   },
   isVerified: {
     type: Boolean,
